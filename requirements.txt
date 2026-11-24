@@ -1,0 +1,5 @@
+Flask
+argon2-cffi
+cryptography
+python-dotenv
+pytest
