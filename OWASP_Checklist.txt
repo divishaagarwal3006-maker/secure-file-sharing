@@ -1,0 +1,40 @@
+
+SECURE FILE SHARING SYSTEM
+OWASP SECURITY CHECKLIST
+
+1. BROKEN ACCESS CONTROL
+- Check file permissions before every operation.
+- Prevent users from accessing other users' private files.
+- Allow owners to revoke sharing permissions.
+
+2. CRYPTOGRAPHIC FAILURES
+- Store passwords as secure hashes.
+- Encrypt files using AES.
+- Verify file integrity using SHA-256.
+
+3. INJECTION
+- Use parameterized SQL queries.
+- Validate user inputs.
+- Prevent SQL injection attacks.
+
+4. SECURITY MISCONFIGURATION
+- Keep files private by default.
+- Avoid exposing sensitive error messages.
+- Store files outside the public web directory.
+
+5. IDENTIFICATION AND AUTHENTICATION FAILURES
+- Require valid login credentials.
+- Use secure password hashing.
+- Protect user sessions.
+
+6. SECURITY LOGGING AND MONITORING FAILURES
+- Record file uploads and downloads.
+- Record deletions and sharing activities.
+- Record unauthorized access attempts.
+
+7. UNSAFE FILE UPLOADS
+- Allow only PDF, TXT, JPG and PNG.
+- Enforce a 5 MB upload limit.
+- Validate file extensions and MIME types.
+
+END OF OWASP CHECKLIST

@@ -1,0 +1,34 @@
+
+SECURE FILE SHARING SYSTEM
+SECURITY TESTING REPORT
+
+1. Authentication Testing
+- Incorrect password should be rejected.
+- Unauthenticated users should not access files.
+
+2. File Upload Testing
+- Valid PDF upload should succeed.
+- Unsupported file types should be rejected.
+- Files larger than 5 MB should be rejected.
+
+3. Authorization Testing
+- Users should not access private files belonging to others.
+- Shared users should access permitted files.
+- Revoked users should lose access.
+
+4. File Integrity Testing
+- SHA-256 checksum should match for unchanged files.
+- Modified files should fail integrity verification.
+
+5. Activity Logging Testing
+- Uploads should be logged.
+- Downloads should be logged.
+- Deletions should be logged.
+- Sharing activities should be logged.
+
+6. Input Validation Testing
+- Empty filenames should be rejected.
+- Invalid file IDs should be rejected.
+- SQL injection attempts should not execute.
+
+END OF REPORT

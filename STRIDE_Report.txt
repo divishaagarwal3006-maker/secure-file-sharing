@@ -1,0 +1,29 @@
+
+SECURE FILE SHARING SYSTEM
+STRIDE THREAT MODEL
+
+1. SPOOFING
+Threat: An attacker tries to access another user's account.
+Solution: Password hashing and secure authentication.
+
+2. TAMPERING
+Threat: An attacker modifies stored files.
+Solution: AES encryption and SHA-256 checksum verification.
+
+3. REPUDIATION
+Threat: A user denies performing a file operation.
+Solution: Activity logging with timestamps and user IDs.
+
+4. INFORMATION DISCLOSURE
+Threat: Unauthorized users access private files.
+Solution: Role-based access control and file permissions.
+
+5. DENIAL OF SERVICE
+Threat: An attacker uploads excessively large files.
+Solution: File size limits and rate limiting.
+
+6. ELEVATION OF PRIVILEGE
+Threat: A normal user tries to gain administrator access.
+Solution: Server-side role and permission checks.
+
+END OF STRIDE REPORT
