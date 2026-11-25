@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Secure File Sharing Dashboard</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; color: #172033; }
+    header, .toolbar, .cards, section { margin-bottom: 1.5rem; }
+    header, .toolbar { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; }
+    .card, section { border:1px solid #dbe2ee; border-radius:12px; padding:1rem; background:#fff; }
+    .card strong { display:block; font-size:1.8rem; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { text-align:left; padding:.65rem; border-bottom:1px solid #e8edf5; vertical-align:top; }
+    input, button { padding:.45rem .65rem; }
+    .success { color:#176b3a; } .error { color:#a32626; }
+  </style>
+</head>
+<body>
+  <header><div><h1>Secure File Sharing</h1><p>Welcome, <strong>{{ user['username'] }}</strong>.</p></div>
+    <form method="post" action="{{ url_for('auth.logout') }}"><button>Logout</button></form></header>
+  {% for category, message in get_flashed_messages(with_categories=true) %}<p class="{{ category }}">{{ message }}</p>{% endfor %}
+  <div class="cards">
+    <div class="card"><span>Total accessible files</span><strong>{{ total }}</strong></div>
+    <div class="card"><span>Files owned</span><strong>{{ owned|length }}</strong></div>
+    <div class="card"><span>Shared with me</span><strong>{{ shared|length }}</strong></div>
+  </div>
+  <div class="toolbar"><h2>Files</h2><a href="{{ url_for('secure_files.index') }}">Upload File</a></div>
+  <section><h2>My Files</h2>
+    {% if owned %}<table><tr><th>Name</th><th>Size</th><th>Uploaded</th><th>Actions</th></tr>
+    {% for file in owned %}<tr><td>{{ file['original_filename'] }}</td><td>{{ file['file_size'] }} bytes</td><td>{{ file['upload_date'] }}</td><td>
+      <a href="{{ url_for('secure_files.download', file_id=file['file_id']) }}">Download</a>
+      <form method="post" action="{{ url_for('files.share', file_id=file['file_id']) }}"><input name="username" placeholder="Share with username" required><button>Share</button></form>
+    </td></tr>{% endfor %}</table>{% else %}<p>No files have been uploaded.</p>{% endif %}
+  </section>
+  <section><h2>Shared With Me</h2>
+    {% if shared %}<table><tr><th>Name</th><th>Owner</th><th>Type</th><th>Action</th></tr>
+    {% for file in shared %}<tr><td>{{ file['original_filename'] }}</td><td>{{ file['owner_username'] }}</td><td>{{ file['mime_type'] }}</td><td><a href="{{ url_for('secure_files.download', file_id=file['file_id']) }}">Download</a></td></tr>{% endfor %}</table>
+    {% else %}<p>No files have been shared with you.</p>{% endif %}
+  </section>
+  <section><h2>Activity Logs</h2>
+    {% if activity %}<table><tr><th>Action</th><th>Status</th><th>Time</th></tr>{% for item in activity %}<tr><td>{{ item['action'] }}</td><td>{{ item['status'] }}</td><td>{{ item['timestamp'] }}</td></tr>{% endfor %}</table>{% else %}<p>No recent activity.</p>{% endif %}
+  </section>
+  <section><h2>Account</h2><p>Username: {{ user['username'] }}</p><p>Role: {{ user['role'] }}</p></section>
+</body>
+</html>

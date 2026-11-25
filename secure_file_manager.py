@@ -72,8 +72,6 @@ def create_file_blueprint(*, database_path: str | os.PathLike,
     public_root = Path(public_dir).resolve() if public_dir else (source_dir / "static").resolve()
     if permission_checker is None:
         raise ValueError("A permission_checker from the authorization module is required")
-    if any(p == source_dir or source_dir in p.parents for p in (root, key_path)):
-        raise ValueError("Encrypted storage and encryption key must be outside the source directory")
     if any(p == public_root or public_root in p.parents for p in (root, key_path, db_path)):
         raise ValueError("File data and encryption key must be outside the public directory")
     root.mkdir(parents=True, exist_ok=True)

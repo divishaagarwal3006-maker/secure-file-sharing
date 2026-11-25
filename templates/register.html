@@ -4,6 +4,7 @@
 {% for m in get_flashed_messages() %}<p style="color:red">{{ m }}</p>{% endfor %}
 <form method="post">
   <input name="username" placeholder="Username" required>
+  <input name="email" type="email" placeholder="Email (optional)">
   <input name="password" type="password" placeholder="Password (12+ chars)" required>
   <button>Register</button>
 </form>

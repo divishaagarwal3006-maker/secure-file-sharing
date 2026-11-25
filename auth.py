@@ -1,7 +1,9 @@
 import functools
+import re
 import sqlite3
 import time
 
+import bcrypt
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerifyMismatchError
 from flask import (Blueprint, flash, g, redirect, render_template,
@@ -9,7 +11,7 @@ from flask import (Blueprint, flash, g, redirect, render_template,
 
 from db import get_db
 from logger import log_event
-from validators import validate_password, validate_username
+from validators import validate_email, validate_password, validate_username
 
 bp = Blueprint("auth", __name__)
 
@@ -18,8 +20,8 @@ MAX_ATTEMPTS = 5
 LOCK_SECONDS = 300      # 5 minutes
 IDLE_TIMEOUT = 1800     # 30 minutes
 
-ph = PasswordHasher()                    # Argon2id, random salt per hash
-DUMMY_HASH = ph.hash("dummy-password")   # equalises timing for unknown usernames
+DUMMY_HASH = bcrypt.hashpw(b"dummy-password", bcrypt.gensalt())
+legacy_password_hasher = PasswordHasher()
 
 
 @bp.before_app_request
@@ -59,6 +61,7 @@ def login_required(f):
 def register():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip().lower() or None
         password = request.form.get("password", "")
 
         if not validate_username(username):
@@ -67,16 +70,19 @@ def register():
         if not validate_password(password):
             flash("Password needs 12+ characters with upper, lower and a digit.")
             return render_template("register.html"), 400
+        if email and not validate_email(email):
+            flash("Enter a valid email address.")
+            return render_template("register.html"), 400
 
         db = get_db()
         try:
             cur = db.execute(
-                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-                (username, ph.hash(password)),   # role never comes from the form
+                "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+                (username, email, bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()),
             )
             db.commit()
         except sqlite3.IntegrityError:
-            flash("That username is not available.")
+            flash("That username or email is already registered.")
             return render_template("register.html"), 400
 
         log_event(cur.lastrowid, "register", None, "success")
@@ -99,11 +105,16 @@ def login():
             flash("Too many failed attempts. Try again later.")
             return render_template("login.html"), 429
 
-        stored = user["password_hash"] if user else DUMMY_HASH
+        stored_hash = user["password_hash"] if user else None
+        migrated_legacy_hash = False
         try:
-            ph.verify(stored, password)
-            ok = user is not None
-        except (VerifyMismatchError, InvalidHashError):
+            if stored_hash and stored_hash.startswith("$argon2"):
+                ok = legacy_password_hasher.verify(stored_hash, password)
+                migrated_legacy_hash = ok
+            else:
+                stored = stored_hash.encode() if stored_hash else DUMMY_HASH
+                ok = user is not None and bcrypt.checkpw(password.encode(), stored)
+        except (ValueError, TypeError, InvalidHashError, VerifyMismatchError):
             ok = False
 
         if not ok:
@@ -119,11 +130,11 @@ def login():
             flash("Invalid username or password.")
             return render_template("login.html"), 401
 
-        if ph.check_needs_rehash(user["password_hash"]):
-            db.execute("UPDATE users SET password_hash = ? WHERE id = ?",
-                       (ph.hash(password), user["id"]))
         db.execute("UPDATE users SET failed_attempts = 0, locked_until = 0 WHERE id = ?",
                    (user["id"],))
+        if migrated_legacy_hash:
+            db.execute("UPDATE users SET password_hash = ? WHERE id = ?",
+                       (bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode(), user["id"]))
         db.commit()
 
         session.clear()                      # prevents session fixation

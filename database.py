@@ -5,6 +5,11 @@ def get_db():
     conn = sqlite3.connect("secure_file_sharing.db")
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("""CREATE TABLE IF NOT EXISTS activity_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, action TEXT NOT NULL,
+        file_id TEXT, status TEXT NOT NULL DEFAULT 'success',
+        timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, details TEXT)""")
+    conn.commit()
     return conn
 
 

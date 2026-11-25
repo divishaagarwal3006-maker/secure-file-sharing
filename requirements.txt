@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 Flask>=3.0,<4.0
 cryptography>=42.0
-=======
-Flask
-argon2-cffi
-cryptography
+bcrypt>=4.0
+argon2-cffi>=23.0
 python-dotenv
 pytest
->>>>>>> 95ff0aae5358aa790c80fe49c115d668a45a32d2

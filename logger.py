@@ -9,6 +9,14 @@ def log_event(user_id, action, file_id=None, status="success"):
             "INSERT INTO logs (user_id, action, file_id, status) VALUES (?, ?, ?, ?)",
             (user_id, action, file_id, status),
         )
+        db.execute(
+            "INSERT INTO activity_logs (user_id, action, file_id, status) VALUES (?, ?, ?, ?)",
+            (user_id, action, file_id, status),
+        )
         db.commit()
     except Exception:
         pass
+
+
+def log_activity(user_id, action, file_id=None, status="success", details=None):
+    log_event(user_id, action, file_id, status)

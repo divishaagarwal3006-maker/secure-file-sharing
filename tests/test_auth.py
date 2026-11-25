@@ -27,7 +27,26 @@ def test_password_is_hashed(client):
     reg(client)
     with client.application.app_context():
         h = get_db().execute("SELECT password_hash FROM users").fetchone()[0]
-    assert h.startswith("$argon2") and PW not in h
+    assert h.startswith("$2b$") and PW not in h
+
+
+def test_legacy_argon2_password_is_migrated_to_bcrypt(client):
+    from argon2 import PasswordHasher
+
+    with client.application.app_context():
+        db = get_db()
+        db.execute(
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+            ("legacy", PasswordHasher().hash(PW)),
+        )
+        db.commit()
+    response = client.post("/login", data={"username": "legacy", "password": PW})
+    assert response.status_code == 302
+    with client.application.app_context():
+        stored = get_db().execute(
+            "SELECT password_hash FROM users WHERE username = ?", ("legacy",)
+        ).fetchone()[0]
+    assert stored.startswith("$2b$")
 
 
 def test_weak_password_rejected(client):

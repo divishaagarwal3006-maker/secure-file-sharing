@@ -20,6 +20,11 @@ def close_db(e=None):
 def init_db():
     with current_app.open_resource("schema.sql") as f:
         get_db().executescript(f.read().decode("utf-8"))
+    columns = {row["name"] for row in get_db().execute("PRAGMA table_info(users)")}
+    if "email" not in columns:
+        get_db().execute("ALTER TABLE users ADD COLUMN email TEXT")
+        get_db().execute("CREATE UNIQUE INDEX IF NOT EXISTS ux_users_email ON users(email) WHERE email IS NOT NULL")
+    get_db().commit()
 
 
 @click.command("init-db")
